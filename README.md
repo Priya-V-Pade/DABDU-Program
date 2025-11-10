@@ -1,183 +1,533 @@
-Practical = 1
-Write a program non-recursive and recursive program to calculate Fibonacci numbers and analyze 
-their time and space complexity. 
-Recurssive :
-def fibonacci_recursive(n):
-    if n <= 0:
-        return 0
-    elif n == 1:
-        return 1
-    else:
-        return fibonacci_recursive(n-1) + fibonacci_recursive(n-2)
-num = int(input("Enter the number of terms for Fibonacci series (recursive): "))
-print("Fibonacci series (recursive):")
-for i in range(num):
-    print(fibonacci_recursive(i), end=' ')
-print()
-______________________________________________________________________________________________________________________
-Non Recursive Fibonacci :
-def fibonacci_iterative(n):
-    series = []
-    a, b = 0, 1
-    for _ in range(n):
-        series.append(a)
-        a, b = b, a + b
-    return series
+Practical=1
+Design and Develop SQL DDL statements which demonstrate the use of SQL objects such as Table, View, Index, Sequence, Synonym, different constraints etc. 
 
-n = int(input("Enter the number of Fibonacci numbers to generate (iterative): "))
-fib_series = fibonacci_iterative(n)
-print(f"Fibonacci series (first {n} numbers) using iterative method:")
-print(fib_series)
-______________________________________________________________________________________________________________________
+-- Create Department Table
+CREATE TABLE Department (
+  DeptID INT PRIMARY KEY,
+  DeptName VARCHAR(50)
+);
+
+-- Create Employee Table with Constraints
+CREATE TABLE Employee (
+  EmpID INT PRIMARY KEY,
+  EmpName VARCHAR(50) NOT NULL,
+  Salary DECIMAL(10,2),
+  DeptID INT,
+  FOREIGN KEY (DeptID) REFERENCES Department(DeptID)
+);
+
+-- Insert Sample Data
+INSERT INTO Department VALUES (1, 'HR');
+INSERT INTO Department VALUES (2, 'IT');
+
+INSERT INTO Employee VALUES (101, 'Priya', 40000, 2);
+INSERT INTO Employee VALUES (102, 'Amit', 30000, 1);
+
+-- Create a View
+CREATE VIEW Emp_View AS
+SELECT EmpName, Salary, DeptName
+FROM Employee
+JOIN Department ON Employee.DeptID = Department.DeptID;
+
+-- Create an Index on Salary
+CREATE INDEX idx_salary ON Employee(Salary);
+
+-- Create a Sequence for Employee IDs
+CREATE SEQUENCE emp_seq
+START WITH 103
+INCREMENT BY 1;
+
+-- Use the Sequence to Insert a New Employee
+INSERT INTO Employee (EmpID, EmpName, Salary, DeptID)
+VALUES (emp_seq.NEXTVAL, 'Riya', 35000, 2);
+
+-- Create a Synonym for Employee Table
+CREATE SYNONYM Emp FOR Employee;
+
+-- Select Data using Synonym
+SELECT * FROM Emp;
+_____________________________________________________________________________________________________________________________________________
 Practical = 2
-Write a program to implement Huffman Encoding using a greedy strategy. 
-import heapq
 
-class Node:
-    def __init__(self, freq, char, left=None, right=None):
-        self.freq = freq
-        self.char = char
-        self.left = left
-        self.right = right
+Design and develop SQL Queries – all types of joins, sub-queries and views.
+-- Create Tables
+CREATE TABLE Department (
+  DeptID INT PRIMARY KEY,
+  DeptName VARCHAR(50)
+);
 
-    def __lt__(self, other):
-        return self.freq < other.freq
+CREATE TABLE Employee (
+  EmpID INT PRIMARY KEY,
+  EmpName VARCHAR(50),
+  DeptID INT,
+  Salary DECIMAL(10,2),
+  FOREIGN KEY (DeptID) REFERENCES Department(DeptID)
+);
 
-def build_huffman_tree(chars, freqs):
-    heap = [Node(freqs[i], chars[i]) for i in range(len(chars))]
-    heapq.heapify(heap)
+-- Insert Data
+INSERT INTO Department VALUES
+(1, 'HR'),
+(2, 'IT');
 
-    while len(heap) > 1:
-        left = heapq.heappop(heap)
-        right = heapq.heappop(heap)
-        merged = Node(left.freq + right.freq, '-', left, right)
-        heapq.heappush(heap, merged)
+INSERT INTO Employee VALUES
+(101, 'Amit', 1, 40000),
+(102, 'Neha', 2, 60000),
+(103, 'Ravi', 2, 50000),
+(104, 'Simran', NULL, 30000);
 
-    return heap[0]
+---------------------------------------------------
+-- 1️⃣ INNER JOIN
+---------------------------------------------------
+SELECT EmpName, DeptName
+FROM Employee
+INNER JOIN Department ON Employee.DeptID = Department.DeptID;
 
-def print_codes(node, code=""):
-    if node.left is None and node.right is None:
-        print(f"{node.char} -> {code}")
-        return
-    print_codes(node.left, code + "0")
-    print_codes(node.right, code + "1")
+---------------------------------------------------
+-- 2️⃣ LEFT JOIN
+---------------------------------------------------
+SELECT EmpName, DeptName
+FROM Employee
+LEFT JOIN Department ON Employee.DeptID = Department.DeptID;
 
-def main():
-    chars = list(input("Enter characters (no spaces): "))
-    freqs = list(map(int, input("Enter frequencies (space-separated): ").split()))
-    if len(chars) != len(freqs):
-        print("Mismatch between characters and frequencies!")
-        return
-    root = build_huffman_tree(chars, freqs)
-    print("\nHuffman Codes:")
-    print_codes(root)
+---------------------------------------------------
+-- 3️⃣ RIGHT JOIN
+---------------------------------------------------
+SELECT EmpName, DeptName
+FROM Employee
+RIGHT JOIN Department ON Employee.DeptID = Department.DeptID;
 
-if __name__ == "__main__":
-    main()
-______________________________________________________________________________________________________________________
+---------------------------------------------------
+-- 4️⃣ CROSS JOIN
+---------------------------------------------------
+SELECT EmpName, DeptName
+FROM Employee
+CROSS JOIN Department;
+
+---------------------------------------------------
+-- 5️⃣ SUBQUERY (Find employees with salary > Amit)
+---------------------------------------------------
+SELECT EmpName, Salary
+FROM Employee
+WHERE Salary > (SELECT Salary FROM Employee WHERE EmpName = 'Amit');
+
+---------------------------------------------------
+-- 6️⃣ CREATE VIEW
+---------------------------------------------------
+CREATE VIEW Emp_View AS
+SELECT EmpName, DeptName, Salary
+FROM Employee
+LEFT JOIN Department ON Employee.DeptID = Department.DeptID;
+
+-- View Data
+SELECT * FROM Emp_View;
+
+_____________________________________________________________________________________________________________________________________________
+
 Practical = 3
+Design and develop SQL queries for any suitable database application using SQL DML statements.
 
-Write a program to solve a 0-1 Knapsack problem using dynamic programming or branch and bound 
-strategy.
-def knapsack(weights, values, capacity):
-    n = len(values)
-    dp = [[0 for _ in range(capacity + 1)] for _ in range(n + 1)]
+-- Step 1: Create a Database
+CREATE DATABASE InstituteDB;
 
-    for i in range(1, n + 1):
-        for w in range(1, capacity + 1):
-            if weights[i - 1] <= w:
-                dp[i][w] = max(values[i - 1] + dp[i - 1][w - weights[i - 1]], dp[i - 1][w])
-            else:
-                dp[i][w] = dp[i - 1][w]
+-- Step 2: Use the Database
+USE InstituteDB;
 
-    return dp[n][capacity]
+-- Step 3: Create a Table
+CREATE TABLE StudentRecord (
+    Student_ID INT PRIMARY KEY,
+    Name VARCHAR(50),
+    Course VARCHAR(50),
+    Marks INT
+);
 
-# Main program
-values = list(map(int, input("Enter values of items (space-separated): ").split()))
-weights = list(map(int, input("Enter weights of items (space-separated): ").split()))
-capacity = int(input("Enter knapsack capacity: "))
+-- Step 4: Insert Records (INSERT Command)
+INSERT INTO StudentRecord (Student_ID, Name, Course, Marks)
+VALUES 
+(1, 'Amit', 'Computer Science', 85),
+(2, 'Priya', 'Information Tech', 78),
+(3, 'Rahul', 'Computer Science', 90),
+(4, 'Harshada', 'Electronics', 88);
 
-max_profit = knapsack(weights, values, capacity)
-print(f"\nMaximum profit that can be achieved: {max_profit}")
+-- Step 5: Display All Records (SELECT Command)
+SELECT * FROM StudentRecord;
 
-______________________________________________________________________________________________________________________
-Practical = 4
-Design n-Queens matrix having first Queen placed. Use backtracking to place remaining Queens to 
-generate the final n-queen ‘s matrix. 
+-- Step 6: Update Record (Change Marks)
+UPDATE StudentRecord
+SET Marks = 95
+WHERE Student_ID = 3;
 
-def is_safe(board, row, col, n):
-    # Check same column
-    for i in range(row):
-        if board[i][col] == 'Q':
-            return False
+-- Step 7: Change Name (UPDATE Command)
+UPDATE StudentRecord
+SET Name = 'Rohit'
+WHERE Student_ID = 1;
 
-    # Check upper-left diagonal
-    i, j = row - 1, col - 1
-    while i >= 0 and j >= 0:
-        if board[i][j] == 'Q':
-            return False
-        i -= 1
-        j -= 1
+-- Step 8: Delete a Record (DELETE Command)
+DELETE FROM StudentRecord
+WHERE Student_ID = 2;
 
-    # Check upper-right diagonal
-    i, j = row - 1, col + 1
-    while i >= 0 and j < n:
-        if board[i][j] == 'Q':
-            return False
-        i -= 1
-        j += 1
+-- Step 9: Display Final Records
+SELECT * FROM StudentRecord;
 
-    return True
+-- Step 10: Display Students with Marks greater than 70
+SELECT * FROM StudentRecord WHERE Marks > 70;
 
-def print_board(board):
-    for row in board:
-        print(" ".join(row))
-    print()
+-- Step 11: Sort students by Marks in descending order (highest first)
+SELECT * FROM StudentRecord
+ORDER BY Marks DESC;
 
-def solve_n_queens(board, row, n):
-    if row == n:
-        print_board(board)
-        return
-    for col in range(n):
-        if is_safe(board, row, col, n):
-            board[row][col] = 'Q'
-            solve_n_queens(board, row + 1, n)
-            board[row][col] = '-'  # Backtrack
+-- Step 12: Sort only student names by Marks in descending order
+SELECT Name FROM StudentRecord
+ORDER BY Marks DESC;
+_____________________________________________________________________________________________________________________________________________
 
-def main():
-    N = 8  # You can change this to any N
-    board = [['-' for _ in range(N)] for _ in range(N)]
-    solve_n_queens(board, 0, N)
+Practocal = 4
+Design and Develop Unnamed PL/SQL code block: Use of Control structure and Exception handling is mandatory.
 
-if __name__ == "__main__":
-    main()
-______________________________________________________________________________________________________________________
-Practical = 5 
-Write a program for analysis of quick sort by using deterministic and randomized variant 
-import random, time
-def quick_sort_det(arr):
-    if len(arr) <= 1: return arr
-    p = arr[0]
-    left = [x for x in arr[1:] if x <= p]
-    right = [x for x in arr[1:] if x > p]
-    return quick_sort_det(left) + [p] + quick_sort_det(right)
+CREATE DATABASE LibraryDB;
+USE LibraryDB;
 
-def quick_sort_rand(arr):
-    if len(arr) <= 1: return arr
-    p = random.choice(arr)
-    arr.remove(p)
-    left = [x for x in arr if x <= p]
-    right = [x for x in arr if x > p]
-    return quick_sort_rand(left) + [p] + quick_sort_rand(right)
+CREATE TABLE Borrower (
+    RollNo INT,
+    Name VARCHAR(50),
+    BookName VARCHAR(50),
+    DateOfIssue DATE,
+    Status VARCHAR(5)
+);
 
-# --- Main ---
-data = list(map(int, input("Enter numbers separated by space: ").split()))
-print("\nOriginal list:", data)
+INSERT INTO Borrower VALUES
+(1, 'Harshada', 'Operating System', '2022-09-19', 'I'),
+(2, 'Vaishnavi', 'OOP', '2022-07-24', 'I'),
+(3, 'Mohan', 'Microprocessor', '2022-06-12', 'I'),
+(4, 'Om', 'Mechanics', '2022-04-19', 'I');
 
-start = time.time()
-print("Sorted (Deterministic):", quick_sort_det(data.copy()))
-print("Deterministic Quick Sort Time:", format(time.time() - start, ".6f"), "sec")
+CREATE TABLE Fine (
+    RollNo INT,
+    FineDate DATE,
+    Amount INT
+);
 
-start = time.time()
-print("Sorted (Randomized):", quick_sort_rand(data.copy()))
-print("Randomized Quick Sort Time:", format(time.time() - start, ".6f"), "sec")
+-- ============================================
+-- Procedure 1: Calculate Fine with Exception Handling
+-- ============================================
+DELIMITER //
+CREATE PROCEDURE CalcFine(IN r INT, IN b VARCHAR(50))
+BEGIN
+    DECLARE d DATE;
+    DECLARE diff INT;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND 
+        BEGIN
+            SET d = NULL;
+            SELECT 'No record found for given RollNo and Book!' AS Message;
+        END;
+
+    BEGIN
+        SELECT DateOfIssue INTO d 
+        FROM Borrower 
+        WHERE RollNo = r AND BookName = b;
+
+        IF d IS NOT NULL THEN
+            SET diff = DATEDIFF(CURDATE(), d);
+
+            IF diff BETWEEN 15 AND 30 THEN
+                INSERT INTO Fine VALUES(r, CURDATE(), diff * 5);
+            ELSEIF diff > 30 THEN
+                INSERT INTO Fine VALUES(r, CURDATE(), diff * 50);
+            ELSE
+                SELECT 'No fine — Book returned on time.' AS Message;
+            END IF;
+        END IF;
+    EXCEPTION
+        WHEN SQLEXCEPTION THEN
+            SELECT 'SQL Error occurred while calculating fine!' AS Message;
+        WHEN SQLWARNING THEN
+            SELECT 'Warning occurred while calculating fine!' AS Message;
+    END;
+END //
+DELIMITER ;
+
+-- ============================================
+-- Procedure 2: Submit Book with Exception Handling
+-- ============================================
+DELIMITER //
+CREATE PROCEDURE SubmitBook(IN r INT)
+BEGIN
+    BEGIN
+        UPDATE Borrower SET Status='R' WHERE RollNo=r;
+        DELETE FROM Fine WHERE RollNo=r;
+        SELECT 'Book returned successfully!' AS Message;
+    EXCEPTION
+        WHEN SQLEXCEPTION THEN
+            SELECT 'Error while submitting the book!' AS Message;
+    END;
+END //
+DELIMITER ;
+
+-- ============================================
+-- Call Procedures
+-- ============================================
+CALL CalcFine(1,'Operating System');
+CALL CalcFine(2,'OOP');
+CALL CalcFine(3,'Microprocessor');
+CALL CalcFine(4,'Mechanics');
+
+SELECT * FROM Fine;
+
+CALL SubmitBook(1);
+CALL SubmitBook(2);
+CALL SubmitBook(3);
+CALL SubmitBook(4);
+
+SELECT * FROM Borrower;
+___________________________________________________________________________________________________________________________________________________________________
+Practical = 5
+Design and Develop Named PL/SQL Block: PL/SQL Stored Procedure and Stored Function. 
+Write a Stored Procedure namely pro_Graded for the categorization of student. If marks scored by students in examination is <=1500 and marks>=990 then student will be placed in distinction category if marks scored are between 989 and900 category is first class, if marks899and 825 category is Higher Second Class. 
+
+create database Score;
+use Score;
+
+create table stud_marks(name varchar(20),total_marks int(5));
+
+create table Result(roll_no int(3) primary key,name varchar(20),class varchar(20));
+
+insert into stud_marks values('Vaishnavi',995);
+insert into stud_marks values('Harshada',865);
+insert into stud_marks values('Samart',920);
+insert into stud_marks values('Mohan',1000);
+insert into stud_marks values('Soham',745);
+select * from stud_marks;
+insert into Result(roll_no,Name) values(1,'Vaishnavi');
+insert into Result(roll_no,Name) values(2,'Harshada');
+insert into Result(roll_no,Name) values(3,'Samart');
+insert into Result(roll_no,Name) values(4,'Mohan');
+insert into Result(roll_no,Name) values(5,'Soham');
+select * from Result;
+
+
+delimiter //
+
+create function func_Grade(r int)
+returns varchar(25)
+deterministic
+begin
+    declare m int;
+    declare grade varchar(25);
+
+    -- get total marks for given roll_no
+    select total_marks into m 
+    from stud_marks 
+    where name = (select name from Result where roll_no = r);
+
+    -- determine grade
+    if m >= 990 then
+        set grade = 'Distinction';
+    elseif m >= 900 then
+        set grade = 'FirstClass';
+    elseif m >= 825 then
+        set grade = 'SecondClass';
+    else
+        set grade = '--';
+    end if;
+
+    return grade;
+end //
+
+delimiter ;
+
+
+DELIMITER //
+create function func_Grade(r int(2))
+returns varchar(25)
+deterministic
+begin
+declare grade varchar(25);
+call proc_Grade(r,grade);
+return grade;
+end //
+DELIMITER ;
+
+
+select func_Grade(1); 
+select func_Grade(2); 
+select func_Grade(3); 
+select func_Grade(4); 
+select func_Grade(5); 
+select * from Result;
+
+___________________________________________________________________________________________________________________________________________________________________
+Practical = 6
+Write a PL/SQL block of code using parameterized Cursor that will merge the data available in the newly created table N_Roll Call with the data available in the table O-Roll Call. If the data in the first table already exist in the second table, then that data should be skipped.
+
+CREATE DATABASE class1;
+USE class1;
+
+CREATE TABLE O_RollCall (
+  roll_no INT(3),
+  name VARCHAR(20)
+);
+
+CREATE TABLE N_RollCall (
+  roll_no INT(3),
+  name VARCHAR(20)
+);
+
+INSERT INTO O_RollCall VALUES 
+(1,'Harshada'),
+(2,'Vaishnavi'),
+(3,'Soham'),
+(5,'Vaibhav'),
+(6,'Shubham'),
+(9,'Sanket'),
+(11,'Harish');
+
+
+SELECT * FROM O_RollCall;
+SELECT * FROM N_RollCall;
+
+DELIMITER //
+CREATE PROCEDURE cursor_proc_p1()
+BEGIN
+  DECLARE fin INT DEFAULT 0;
+  DECLARE old_roll INT(3);
+  DECLARE old_name VARCHAR(20);
+  DECLARE new_roll INT(3);
+
+  DECLARE old_csr CURSOR FOR SELECT roll_no, name FROM O_RollCall;
+  DECLARE new_csr CURSOR FOR SELECT roll_no FROM N_RollCall;
+
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin = 1;
+
+  OPEN old_csr;
+  OPEN new_csr;
+
+  loop_label: LOOP
+    FETCH old_csr INTO old_roll, old_name;
+    FETCH new_csr INTO new_roll;
+    
+    IF fin = 1 THEN
+      LEAVE loop_label;
+    END IF;
+
+    IF old_roll <> new_roll THEN
+      INSERT INTO N_RollCall VALUES (old_roll, old_name);
+    END IF;
+  END LOOP;
+
+  CLOSE old_csr;
+  CLOSE new_csr;
+END //
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE cursor_proc_p2(IN r1 INT)
+BEGIN
+  DECLARE r2 INT;
+  DECLARE exit_loop BOOLEAN DEFAULT FALSE;
+
+  DECLARE c1 CURSOR FOR 
+    SELECT roll_no FROM O_RollCall WHERE roll_no > r1;
+
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET exit_loop = TRUE;
+
+  OPEN c1;
+
+  loop_e: LOOP
+    FETCH c1 INTO r2;
+
+    IF exit_loop THEN
+      LEAVE loop_e;
+    END IF;
+
+    IF NOT EXISTS (SELECT * FROM N_RollCall WHERE roll_no = r2) THEN
+      INSERT INTO N_RollCall 
+      SELECT * FROM O_RollCall WHERE roll_no = r2;
+    END IF;
+  END LOOP;
+
+  CLOSE c1;
+END //
+DELIMITER ;
+
+
+CALL cursor_proc_p2(5);
+SELECT * FROM N_RollCall;
+
+CALL cursor_proc_p2(3);
+CALL cursor_proc_p1();
+
+SELECT * FROM O_RollCall;
+SELECT * FROM N_RollCall;
+___________________________________________________________________________________________________________________________________________________________________
+
+Practical = 7
+Write a database trigger on Library table. The System should keep track of the records that are being updated or deleted. The old value of updated or deleted records should be added in Library Audit table. 
+
+USE CollegeDB;
+
+-- Step 1: Create Library table
+CREATE TABLE Library (
+    book_id INT PRIMARY KEY,
+    book_name VARCHAR(100),
+    author_name VARCHAR(100),
+    price INT
+);
+
+-- Step 2: Create Library_Audit table
+CREATE TABLE Library_Audit (
+    audit_id INT AUTO_INCREMENT PRIMARY KEY,
+    book_id INT,
+    book_name VARCHAR(100),
+    author_name VARCHAR(100),
+    price INT,
+    operation_type VARCHAR(20),
+    operation_date DATETIME
+);
+
+-- Step 3: Trigger for UPDATE
+DELIMITER $$
+CREATE TRIGGER trg_library_update
+AFTER UPDATE
+ON Library
+FOR EACH ROW
+BEGIN
+    INSERT INTO Library_Audit (book_id, book_name, author_name, price, operation_type, operation_date)
+    VALUES (OLD.book_id, OLD.book_name, OLD.author_name, OLD.price, 'UPDATE', NOW());
+END$$
+DELIMITER ;
+
+-- Step 4: Trigger for DELETE
+DELIMITER $$
+CREATE TRIGGER trg_library_delete
+AFTER DELETE
+ON Library
+FOR EACH ROW
+BEGIN
+    INSERT INTO Library_Audit (book_id, book_name, author_name, price, operation_type, operation_date)
+    VALUES (OLD.book_id, OLD.book_name, OLD.author_name, OLD.price, 'DELETE', NOW());
+END$$
+DELIMITER ;
+
+-- Step 5: Insert records into Library
+INSERT INTO Library VALUES 
+(1, 'DBMS Concepts', 'Shreya', 550),
+(2, 'Operating Systems', 'Shruti', 650),
+(3, 'Computer Network', 'Riya', 400);
+
+-- Step 6: View Library table
+SELECT * FROM Library;
+
+-- Step 7: Perform UPDATE and DELETE operations
+UPDATE Library SET price = 450 WHERE book_id = 3;
+DELETE FROM Library WHERE book_id = 2;
+
+-- Step 8: View Library_Audit (trigger results)
+SELECT * FROM Library_Audit;
+
+-- Step 9: View final Library table
+SELECT * FROM Library;
+___________________________________________________________________________________________________________________________________________________________________
+
+Practical = 8
+Design and develop a PL/SQL function named calculate -Bonus that accepts the employee as an input parameter. The function should calculate & return the bonus amount based on the employee’s department (sales, HR, IT, others). Implement proper exception handling.
+
+
