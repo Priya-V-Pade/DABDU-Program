@@ -1,533 +1,417 @@
 Practical=1
-Design and Develop SQL DDL statements which demonstrate the use of SQL objects such as Table, View, Index, Sequence, Synonym, different constraints etc. 
+ Implement depth first search algorithm and Breadth First Search algorithm, Use an undirected 
+graph and develop a recursive algorithm for searching all the vertices of a graph or tree data 
+structure. 
 
--- Create Department Table
-CREATE TABLE Department (
-  DeptID INT PRIMARY KEY,
-  DeptName VARCHAR(50)
-);
+from collections import deque
 
--- Create Employee Table with Constraints
-CREATE TABLE Employee (
-  EmpID INT PRIMARY KEY,
-  EmpName VARCHAR(50) NOT NULL,
-  Salary DECIMAL(10,2),
-  DeptID INT,
-  FOREIGN KEY (DeptID) REFERENCES Department(DeptID)
-);
+# Graph using dictionary
+graph = {
+    0: [1, 2],
+    1: [0, 3, 4],
+    2: [0, 5],
+    3: [],
+    4: [],
+    5: []
+}
 
--- Insert Sample Data
-INSERT INTO Department VALUES (1, 'HR');
-INSERT INTO Department VALUES (2, 'IT');
+# DFS Function
+def dfs(node, visited):
+    visited.add(node)
+    print(node, end=" ")
 
-INSERT INTO Employee VALUES (101, 'Priya', 40000, 2);
-INSERT INTO Employee VALUES (102, 'Amit', 30000, 1);
+    for neighbour in graph[node]:
+        if neighbour not in visited:
+            dfs(neighbour, visited)
 
--- Create a View
-CREATE VIEW Emp_View AS
-SELECT EmpName, Salary, DeptName
-FROM Employee
-JOIN Department ON Employee.DeptID = Department.DeptID;
+# BFS Function
+def bfs(start):
+    visited = set()
+    queue = deque([start])
 
--- Create an Index on Salary
-CREATE INDEX idx_salary ON Employee(Salary);
+    visited.add(start)
 
--- Create a Sequence for Employee IDs
-CREATE SEQUENCE emp_seq
-START WITH 103
-INCREMENT BY 1;
+    while queue:
+        node = queue.popleft()
+        print(node, end=" ")
 
--- Use the Sequence to Insert a New Employee
-INSERT INTO Employee (EmpID, EmpName, Salary, DeptID)
-VALUES (emp_seq.NEXTVAL, 'Riya', 35000, 2);
+        for neighbour in graph[node]:
+            if neighbour not in visited:
+                visited.add(neighbour)
+                queue.append(neighbour)
 
--- Create a Synonym for Employee Table
-CREATE SYNONYM Emp FOR Employee;
+# Driver Code
+print("DFS:")
+visited = set()
+dfs(0, visited)
 
--- Select Data using Synonym
-SELECT * FROM Emp;
+print("\nBFS:")
+bfs(0)
 _____________________________________________________________________________________________________________________________________________
 Practical = 2
 
-Design and develop SQL Queries – all types of joins, sub-queries and views.
--- Create Tables
-CREATE TABLE Department (
-  DeptID INT PRIMARY KEY,
-  DeptName VARCHAR(50)
-);
+Implement A star Algorithm for any game search problem.
+import heapq
 
-CREATE TABLE Employee (
-  EmpID INT PRIMARY KEY,
-  EmpName VARCHAR(50),
-  DeptID INT,
-  Salary DECIMAL(10,2),
-  FOREIGN KEY (DeptID) REFERENCES Department(DeptID)
-);
+# Maze (0 = path, 1 = obstacle)
+maze = [
+    [0, 0, 0, 0],
+    [1, 1, 0, 1],
+    [0, 0, 0, 1],
+    [0, 1, 0, 0]
+]
 
--- Insert Data
-INSERT INTO Department VALUES
-(1, 'HR'),
-(2, 'IT');
+start = (0, 0)
+goal = (3, 3)
 
-INSERT INTO Employee VALUES
-(101, 'Amit', 1, 40000),
-(102, 'Neha', 2, 60000),
-(103, 'Ravi', 2, 50000),
-(104, 'Simran', NULL, 30000);
+# Heuristic Function (Manhattan Distance)
+def heuristic(a, b):
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
----------------------------------------------------
--- 1️⃣ INNER JOIN
----------------------------------------------------
-SELECT EmpName, DeptName
-FROM Employee
-INNER JOIN Department ON Employee.DeptID = Department.DeptID;
+def a_star(maze, start, goal):
 
----------------------------------------------------
--- 2️⃣ LEFT JOIN
----------------------------------------------------
-SELECT EmpName, DeptName
-FROM Employee
-LEFT JOIN Department ON Employee.DeptID = Department.DeptID;
+    rows = len(maze)
+    cols = len(maze[0])
 
----------------------------------------------------
--- 3️⃣ RIGHT JOIN
----------------------------------------------------
-SELECT EmpName, DeptName
-FROM Employee
-RIGHT JOIN Department ON Employee.DeptID = Department.DeptID;
+    # Priority Queue
+    open_list = []
+    heapq.heappush(open_list, (0, start))
 
----------------------------------------------------
--- 4️⃣ CROSS JOIN
----------------------------------------------------
-SELECT EmpName, DeptName
-FROM Employee
-CROSS JOIN Department;
+    came_from = {}
+    g_cost = {start: 0}
 
----------------------------------------------------
--- 5️⃣ SUBQUERY (Find employees with salary > Amit)
----------------------------------------------------
-SELECT EmpName, Salary
-FROM Employee
-WHERE Salary > (SELECT Salary FROM Employee WHERE EmpName = 'Amit');
+    # Possible moves
+    directions = [(0,1), (1,0), (0,-1), (-1,0)]
 
----------------------------------------------------
--- 6️⃣ CREATE VIEW
----------------------------------------------------
-CREATE VIEW Emp_View AS
-SELECT EmpName, DeptName, Salary
-FROM Employee
-LEFT JOIN Department ON Employee.DeptID = Department.DeptID;
+    while open_list:
 
--- View Data
-SELECT * FROM Emp_View;
+        current = heapq.heappop(open_list)[1]
 
+        # Goal reached
+        if current == goal:
+
+            path = []
+
+            while current in came_from:
+                path.append(current)
+                current = came_from[current]
+
+            path.append(start)
+            path.reverse()
+
+            return path
+
+        # Explore neighbors
+        for move in directions:
+
+            next_node = (
+                current[0] + move[0],
+                current[1] + move[1]
+            )
+
+            r, c = next_node
+
+            # Check valid path
+            if 0 <= r < rows and 0 <= c < cols:
+
+                if maze[r][c] == 1:
+                    continue
+
+                new_cost = g_cost[current] + 1
+
+                if next_node not in g_cost or new_cost < g_cost[next_node]:
+
+                    g_cost[next_node] = new_cost
+
+                    f_cost = new_cost + heuristic(next_node, goal)
+
+                    heapq.heappush(open_list, (f_cost, next_node))
+
+                    came_from[next_node] = current
+
+    return None
+
+
+# Run Algorithm
+path = a_star(maze, start, goal)
+
+# Output
+if path:
+    print("Shortest Path Found:")
+    print(path)
+else:
+    print("No Path Found")
 _____________________________________________________________________________________________________________________________________________
 
 Practical = 3
-Design and develop SQL queries for any suitable database application using SQL DML statements.
+ Implement Greedy search algorithm for any of the following application: 
+ 1) Prim's algo
+import heapq
 
--- Step 1: Create a Database
-CREATE DATABASE InstituteDB;
+class Graph:
+    def __init__(self, vertices):
+        self.V = vertices
+        self.graph = [[] for _ in range(vertices)]
 
--- Step 2: Use the Database
-USE InstituteDB;
+    def add_edge(self, u, v, w):
+        self.graph[u].append((v, w))
+        self.graph[v].append((v, w))
 
--- Step 3: Create a Table
-CREATE TABLE StudentRecord (
-    Student_ID INT PRIMARY KEY,
-    Name VARCHAR(50),
-    Course VARCHAR(50),
-    Marks INT
-);
+    def prim(self):
+        visited = [False] * self.V
+        min_heap = [(0, 0)]
+        total_cost = 0
 
--- Step 4: Insert Records (INSERT Command)
-INSERT INTO StudentRecord (Student_ID, Name, Course, Marks)
-VALUES 
-(1, 'Amit', 'Computer Science', 85),
-(2, 'Priya', 'Information Tech', 78),
-(3, 'Rahul', 'Computer Science', 90),
-(4, 'Harshada', 'Electronics', 88);
+        while min_heap:
+            weight, node = heapq.heappop(min_heap)
 
--- Step 5: Display All Records (SELECT Command)
-SELECT * FROM StudentRecord;
+            if visited[node]:
+                continue
 
--- Step 6: Update Record (Change Marks)
-UPDATE StudentRecord
-SET Marks = 95
-WHERE Student_ID = 3;
+            visited[node] = True
+            total_cost += weight
 
--- Step 7: Change Name (UPDATE Command)
-UPDATE StudentRecord
-SET Name = 'Rohit'
-WHERE Student_ID = 1;
+            for neighbor, edge_weight in self.graph[node]:
+                if not visited[neighbor]:
+                    heapq.heappush(min_heap, (edge_weight, neighbor))
 
--- Step 8: Delete a Record (DELETE Command)
-DELETE FROM StudentRecord
-WHERE Student_ID = 2;
+        print("Total Cost:", total_cost)
 
--- Step 9: Display Final Records
-SELECT * FROM StudentRecord;
 
--- Step 10: Display Students with Marks greater than 70
-SELECT * FROM StudentRecord WHERE Marks > 70;
+g = Graph(5)
 
--- Step 11: Sort students by Marks in descending order (highest first)
-SELECT * FROM StudentRecord
-ORDER BY Marks DESC;
+g.add_edge(0, 1, 2)
+g.add_edge(0, 3, 6)
+g.add_edge(1, 2, 3)
+g.add_edge(1, 3, 8)
+g.add_edge(1, 4, 5)
+g.add_edge(2, 4, 7)
+g.add_edge(3, 4, 9)
 
--- Step 12: Sort only student names by Marks in descending order
-SELECT Name FROM StudentRecord
-ORDER BY Marks DESC;
+g.prim()
 _____________________________________________________________________________________________________________________________________________
 
 Practocal = 4
-Design and Develop Unnamed PL/SQL code block: Use of Control structure and Exception handling is mandatory.
+Implement a solution for a Constraint Satisfaction Problem using Branch and Bound and Backtracking for n-queens problem or a graph coloring problem. 
+# N-Queen Problem (Easy Version)
 
-CREATE DATABASE LibraryDB;
-USE LibraryDB;
-
-CREATE TABLE Borrower (
-    RollNo INT,
-    Name VARCHAR(50),
-    BookName VARCHAR(50),
-    DateOfIssue DATE,
-    Status VARCHAR(5)
-);
-
-INSERT INTO Borrower VALUES
-(1, 'Harshada', 'Operating System', '2022-09-19', 'I'),
-(2, 'Vaishnavi', 'OOP', '2022-07-24', 'I'),
-(3, 'Mohan', 'Microprocessor', '2022-06-12', 'I'),
-(4, 'Om', 'Mechanics', '2022-04-19', 'I');
-
-CREATE TABLE Fine (
-    RollNo INT,
-    FineDate DATE,
-    Amount INT
-);
-
--- ============================================
--- Procedure 1: Calculate Fine with Exception Handling
--- ============================================
-DELIMITER //
-CREATE PROCEDURE CalcFine(IN r INT, IN b VARCHAR(50))
-BEGIN
-    DECLARE d DATE;
-    DECLARE diff INT;
-    DECLARE CONTINUE HANDLER FOR NOT FOUND 
-        BEGIN
-            SET d = NULL;
-            SELECT 'No record found for given RollNo and Book!' AS Message;
-        END;
-
-    BEGIN
-        SELECT DateOfIssue INTO d 
-        FROM Borrower 
-        WHERE RollNo = r AND BookName = b;
-
-        IF d IS NOT NULL THEN
-            SET diff = DATEDIFF(CURDATE(), d);
-
-            IF diff BETWEEN 15 AND 30 THEN
-                INSERT INTO Fine VALUES(r, CURDATE(), diff * 5);
-            ELSEIF diff > 30 THEN
-                INSERT INTO Fine VALUES(r, CURDATE(), diff * 50);
-            ELSE
-                SELECT 'No fine — Book returned on time.' AS Message;
-            END IF;
-        END IF;
-    EXCEPTION
-        WHEN SQLEXCEPTION THEN
-            SELECT 'SQL Error occurred while calculating fine!' AS Message;
-        WHEN SQLWARNING THEN
-            SELECT 'Warning occurred while calculating fine!' AS Message;
-    END;
-END //
-DELIMITER ;
-
--- ============================================
--- Procedure 2: Submit Book with Exception Handling
--- ============================================
-DELIMITER //
-CREATE PROCEDURE SubmitBook(IN r INT)
-BEGIN
-    BEGIN
-        UPDATE Borrower SET Status='R' WHERE RollNo=r;
-        DELETE FROM Fine WHERE RollNo=r;
-        SELECT 'Book returned successfully!' AS Message;
-    EXCEPTION
-        WHEN SQLEXCEPTION THEN
-            SELECT 'Error while submitting the book!' AS Message;
-    END;
-END //
-DELIMITER ;
-
--- ============================================
--- Call Procedures
--- ============================================
-CALL CalcFine(1,'Operating System');
-CALL CalcFine(2,'OOP');
-CALL CalcFine(3,'Microprocessor');
-CALL CalcFine(4,'Mechanics');
-
-SELECT * FROM Fine;
-
-CALL SubmitBook(1);
-CALL SubmitBook(2);
-CALL SubmitBook(3);
-CALL SubmitBook(4);
-
-SELECT * FROM Borrower;
+N = 5
+board = [[0 for i in range(N)] for j in range(N)]
+# Function to check if queen can be placed
+def is_safe(row, col):
+    # Check upper column
+    for i in range(row):
+        if board[i][col] == 1:
+            return False
+    # Check left diagonal
+    i = row - 1
+    j = col - 1
+    while i >= 0 and j >= 0:
+        if board[i][j] == 1:
+            return False
+        i -= 1
+        j -= 1
+    # Check right diagonal
+    i = row - 1
+    j = col + 1
+    while i >= 0 and j < N:
+        if board[i][j] == 1:
+            return False
+        i -= 1
+        j += 1
+    return True
+# Function to solve N-Queen
+def solve(row):
+    # If all queens are placed
+    if row == N:
+        return True
+    # Try every column
+    for col in range(N):
+        if is_safe(row, col):
+            # Place queen
+            board[row][col] = 1
+            # Recursive call
+            if solve(row + 1):
+                return True
+            # Backtracking
+            board[row][col] = 0
+    return False
+# Main
+solve(0)
+# Print board
+for row in board:
+    for cell in row:
+        if cell == 1:
+            print("Q", end=" ")
+        else:
+            print(".", end=" ")
+    print()
 ___________________________________________________________________________________________________________________________________________________________________
 Practical = 5
-Design and Develop Named PL/SQL Block: PL/SQL Stored Procedure and Stored Function. 
-Write a Stored Procedure namely pro_Graded for the categorization of student. If marks scored by students in examination is <=1500 and marks>=990 then student will be placed in distinction category if marks scored are between 989 and900 category is first class, if marks899and 825 category is Higher Second Class. 
+Develop an elementary catboat for any suitable customer interaction application.
 
-create database Score;
-use Score;
+import random
 
-create table stud_marks(name varchar(20),total_marks int(5));
+class CustomerChatbot:
+    def __init__(self, name):
+        self.name = name
 
-create table Result(roll_no int(3) primary key,name varchar(20),class varchar(20));
+    def respond(self, message):
+        message = message.lower()
 
-insert into stud_marks values('Vaishnavi',995);
-insert into stud_marks values('Harshada',865);
-insert into stud_marks values('Samart',920);
-insert into stud_marks values('Mohan',1000);
-insert into stud_marks values('Soham',745);
-select * from stud_marks;
-insert into Result(roll_no,Name) values(1,'Vaishnavi');
-insert into Result(roll_no,Name) values(2,'Harshada');
-insert into Result(roll_no,Name) values(3,'Samart');
-insert into Result(roll_no,Name) values(4,'Mohan');
-insert into Result(roll_no,Name) values(5,'Soham');
-select * from Result;
+        # Greeting responses
+        greetings = [
+            "Hello! How can I assist you today?",
+            "Hi there! What can I help you with?",
+            "Welcome! How may I help you?"
+        ]
 
+        # Product information
+        product_info = "We offer laptops, smartphones, and accessories. Which product would you like information about?"
 
-delimiter //
+        # Pricing information
+        pricing_info = "Our prices start from ₹10,000. Please specify the product for exact pricing."
 
-create function func_Grade(r int)
-returns varchar(25)
-deterministic
-begin
-    declare m int;
-    declare grade varchar(25);
+        # Order tracking
+        order_info = "Please provide your order ID to track your order."
 
-    -- get total marks for given roll_no
-    select total_marks into m 
-    from stud_marks 
-    where name = (select name from Result where roll_no = r);
+        # Complaint response
+        complaint_response = "I'm sorry for the inconvenience. Please describe your issue in detail so I can assist you."
 
-    -- determine grade
-    if m >= 990 then
-        set grade = 'Distinction';
-    elseif m >= 900 then
-        set grade = 'FirstClass';
-    elseif m >= 825 then
-        set grade = 'SecondClass';
-    else
-        set grade = '--';
-    end if;
+        # Goodbye responses
+        goodbyes = [
+            "Thank you for visiting! Have a great day!",
+            "Goodbye! Feel free to contact us again.",
+            "Take care! We are always here to help."
+        ]
 
-    return grade;
-end //
+        # Intent detection using keywords
+        if any(word in message for word in ["hello", "hi", "hey"]):
+            return random.choice(greetings)
 
-delimiter ;
+        elif any(word in message for word in ["product", "item", "service"]):
+            return product_info
 
+        elif any(word in message for word in ["price", "cost", "rate"]):
+            return pricing_info
 
-DELIMITER //
-create function func_Grade(r int(2))
-returns varchar(25)
-deterministic
-begin
-declare grade varchar(25);
-call proc_Grade(r,grade);
-return grade;
-end //
-DELIMITER ;
+        elif any(word in message for word in ["order", "track", "delivery"]):
+            return order_info
+
+        elif any(word in message for word in ["complaint", "problem", "issue"]):
+            return complaint_response
+
+        elif any(word in message for word in ["bye", "goodbye", "thank you"]):
+            return random.choice(goodbyes)
+
+        else:
+            return "I'm sorry, I didn't understand your request. Could you please rephrase?"
 
 
-select func_Grade(1); 
-select func_Grade(2); 
-select func_Grade(3); 
-select func_Grade(4); 
-select func_Grade(5); 
-select * from Result;
+# Create chatbot instance
+chatbot = CustomerChatbot("Customer Support Bot")
 
+print("---- Welcome to Customer Support ----")
+
+while True:
+    user_input = input("You: ")
+    response = chatbot.respond(user_input)
+    print(chatbot.name + ": " + response)
+
+    if any(word in user_input.lower() for word in ["bye", "goodbye"]):
+        break
 ___________________________________________________________________________________________________________________________________________________________________
 Practical = 6
-Write a PL/SQL block of code using parameterized Cursor that will merge the data available in the newly created table N_Roll Call with the data available in the table O-Roll Call. If the data in the first table already exist in the second table, then that data should be skipped.
+Implement any one of the following Expert System
+Library management
+books = []
 
-CREATE DATABASE class1;
-USE class1;
+while True:
+    print("\n--- Library Management System ---")
+    print("1. Add Book")
+    print("2. View Books")
+    print("3. Search Book")
+    print("4. Delete Book")
+    print("5. Exit")
 
-CREATE TABLE O_RollCall (
-  roll_no INT(3),
-  name VARCHAR(20)
-);
+    choice = input("Enter your choice: ")
 
-CREATE TABLE N_RollCall (
-  roll_no INT(3),
-  name VARCHAR(20)
-);
+    # Add Book
+    if choice == "1":
+        book_id = input("Enter Book ID: ")
+        title = input("Enter Book Title: ")
+        author = input("Enter Author Name: ")
+        year = input("Enter Year: ")
 
-INSERT INTO O_RollCall VALUES 
-(1,'Harshada'),
-(2,'Vaishnavi'),
-(3,'Soham'),
-(5,'Vaibhav'),
-(6,'Shubham'),
-(9,'Sanket'),
-(11,'Harish');
+        book = {
+            "id": book_id,
+            "title": title,
+            "author": author,
+            "year": year
+        }
 
+        books.append(book)
+        print("Book added successfully!")
 
-SELECT * FROM O_RollCall;
-SELECT * FROM N_RollCall;
+    # View Books
+    elif choice == "2":
 
-DELIMITER //
-CREATE PROCEDURE cursor_proc_p1()
-BEGIN
-  DECLARE fin INT DEFAULT 0;
-  DECLARE old_roll INT(3);
-  DECLARE old_name VARCHAR(20);
-  DECLARE new_roll INT(3);
+        if books == []:
+            print("No books available.")
 
-  DECLARE old_csr CURSOR FOR SELECT roll_no, name FROM O_RollCall;
-  DECLARE new_csr CURSOR FOR SELECT roll_no FROM N_RollCall;
+        else:
+            print("\nBook List:")
 
-  DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin = 1;
+            for book in books:
+                print("ID:", book["id"])
+                print("Title:", book["title"])
+                print("Author:", book["author"])
+                print("Year:", book["year"])
+                print("----------------")
 
-  OPEN old_csr;
-  OPEN new_csr;
+    # Search Book
+    elif choice == "3":
 
-  loop_label: LOOP
-    FETCH old_csr INTO old_roll, old_name;
-    FETCH new_csr INTO new_roll;
-    
-    IF fin = 1 THEN
-      LEAVE loop_label;
-    END IF;
+        search_title = input("Enter book title to search: ")
+        found = False
 
-    IF old_roll <> new_roll THEN
-      INSERT INTO N_RollCall VALUES (old_roll, old_name);
-    END IF;
-  END LOOP;
+        for book in books:
 
-  CLOSE old_csr;
-  CLOSE new_csr;
-END //
-DELIMITER ;
+            if book["title"].lower() == search_title.lower():
+                print("\nBook Found")
+                print("ID:", book["id"])
+                print("Title:", book["title"])
+                print("Author:", book["author"])
+                print("Year:", book["year"])
 
-DELIMITER //
-CREATE PROCEDURE cursor_proc_p2(IN r1 INT)
-BEGIN
-  DECLARE r2 INT;
-  DECLARE exit_loop BOOLEAN DEFAULT FALSE;
+                found = True
 
-  DECLARE c1 CURSOR FOR 
-    SELECT roll_no FROM O_RollCall WHERE roll_no > r1;
+        if found == False:
+            print("Book not found.")
 
-  DECLARE CONTINUE HANDLER FOR NOT FOUND SET exit_loop = TRUE;
+    # Delete Book
+    elif choice == "4":
 
-  OPEN c1;
+        delete_id = input("Enter Book ID to delete: ")
+        found = False
 
-  loop_e: LOOP
-    FETCH c1 INTO r2;
+        for book in books:
 
-    IF exit_loop THEN
-      LEAVE loop_e;
-    END IF;
+            if book["id"] == delete_id:
+                books.remove(book)
+                print("Book deleted successfully!")
+                found = True
+                break
 
-    IF NOT EXISTS (SELECT * FROM N_RollCall WHERE roll_no = r2) THEN
-      INSERT INTO N_RollCall 
-      SELECT * FROM O_RollCall WHERE roll_no = r2;
-    END IF;
-  END LOOP;
+        if found == False:
+            print("Book not found.")
 
-  CLOSE c1;
-END //
-DELIMITER ;
+    # Exit
+    elif choice == "5":
+        print("Thank you!")
+        break
 
-
-CALL cursor_proc_p2(5);
-SELECT * FROM N_RollCall;
-
-CALL cursor_proc_p2(3);
-CALL cursor_proc_p1();
-
-SELECT * FROM O_RollCall;
-SELECT * FROM N_RollCall;
-___________________________________________________________________________________________________________________________________________________________________
-
-Practical = 7
-Write a database trigger on Library table. The System should keep track of the records that are being updated or deleted. The old value of updated or deleted records should be added in Library Audit table. 
-
-USE CollegeDB;
-
--- Step 1: Create Library table
-CREATE TABLE Library (
-    book_id INT PRIMARY KEY,
-    book_name VARCHAR(100),
-    author_name VARCHAR(100),
-    price INT
-);
-
--- Step 2: Create Library_Audit table
-CREATE TABLE Library_Audit (
-    audit_id INT AUTO_INCREMENT PRIMARY KEY,
-    book_id INT,
-    book_name VARCHAR(100),
-    author_name VARCHAR(100),
-    price INT,
-    operation_type VARCHAR(20),
-    operation_date DATETIME
-);
-
--- Step 3: Trigger for UPDATE
-DELIMITER $$
-CREATE TRIGGER trg_library_update
-AFTER UPDATE
-ON Library
-FOR EACH ROW
-BEGIN
-    INSERT INTO Library_Audit (book_id, book_name, author_name, price, operation_type, operation_date)
-    VALUES (OLD.book_id, OLD.book_name, OLD.author_name, OLD.price, 'UPDATE', NOW());
-END$$
-DELIMITER ;
-
--- Step 4: Trigger for DELETE
-DELIMITER $$
-CREATE TRIGGER trg_library_delete
-AFTER DELETE
-ON Library
-FOR EACH ROW
-BEGIN
-    INSERT INTO Library_Audit (book_id, book_name, author_name, price, operation_type, operation_date)
-    VALUES (OLD.book_id, OLD.book_name, OLD.author_name, OLD.price, 'DELETE', NOW());
-END$$
-DELIMITER ;
-
--- Step 5: Insert records into Library
-INSERT INTO Library VALUES 
-(1, 'DBMS Concepts', 'Shreya', 550),
-(2, 'Operating Systems', 'Shruti', 650),
-(3, 'Computer Network', 'Riya', 400);
-
--- Step 6: View Library table
-SELECT * FROM Library;
-
--- Step 7: Perform UPDATE and DELETE operations
-UPDATE Library SET price = 450 WHERE book_id = 3;
-DELETE FROM Library WHERE book_id = 2;
-
--- Step 8: View Library_Audit (trigger results)
-SELECT * FROM Library_Audit;
-
--- Step 9: View final Library table
-SELECT * FROM Library;
-___________________________________________________________________________________________________________________________________________________________________
-
-Practical = 8
-Design and develop a PL/SQL function named calculate -Bonus that accepts the employee as an input parameter. The function should calculate & return the bonus amount based on the employee’s department (sales, HR, IT, others). Implement proper exception handling.
-
+    # Invalid Choice
+    else:
+        print("Invalid choice. Please try again.")
 
