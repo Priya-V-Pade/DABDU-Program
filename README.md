@@ -1,417 +1,284 @@
-Practical=1
- Implement depth first search algorithm and Breadth First Search algorithm, Use an undirected 
-graph and develop a recursive algorithm for searching all the vertices of a graph or tree data 
-structure. 
+Computer Vision
 
-from collections import deque
+in requirement.txt file
 
-# Graph using dictionary
-graph = {
-    0: [1, 2],
-    1: [0, 3, 4],
-    2: [0, 5],
-    3: [],
-    4: [],
-    5: []
-}
+opencv-python
+numpy
 
-# DFS Function
-def dfs(node, visited):
-    visited.add(node)
-    print(node, end=" ")
+Practical 1: pip install opencv-python numpy matplotlib tensorflow scikit-learn tensorflow-datasets
 
-    for neighbour in graph[node]:
-        if neighbour not in visited:
-            dfs(neighbour, visited)
+import cv2
+import numpy as np
 
-# BFS Function
-def bfs(start):
-    visited = set()
-    queue = deque([start])
+print("OpenCV Version:", cv2.__version__)
+print("OpenCV is installed and working successfully.")
 
-    visited.add(start)
+# Create a simple sample image (black background with shapes).
+image = np.zeros((400, 600, 3), dtype=np.uint8)
+cv2.putText(image, "OpenCV Working", (90, 170),
+            cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 3)
+cv2.circle(image, (300, 260), 60, (0, 255, 0), 3)
+cv2.imshow("Practical 1 - OpenCV Test", image)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
 
-    while queue:
-        node = queue.popleft()
-        print(node, end=" ")
+____________________________________________________________________________________________________
 
-        for neighbour in graph[node]:
-            if neighbour not in visited:
-                visited.add(neighbour)
-                queue.append(neighbour)
+Practical 2: Basic Image Processing
+Topics: Loading Images, Cropping, Resizing, Thresholding, Contour Analysis and Blob Detection.
 
-# Driver Code
-print("DFS:")
-visited = set()
-dfs(0, visited)
-
-print("\nBFS:")
-bfs(0)
-_____________________________________________________________________________________________________________________________________________
-Practical = 2
-
-Implement A star Algorithm for any game search problem.
-import heapq
-
-# Maze (0 = path, 1 = obstacle)
-maze = [
-    [0, 0, 0, 0],
-    [1, 1, 0, 1],
-    [0, 0, 0, 1],
-    [0, 1, 0, 0]
-]
-
-start = (0, 0)
-goal = (3, 3)
-
-# Heuristic Function (Manhattan Distance)
-def heuristic(a, b):
-    return abs(a[0] - b[0]) + abs(a[1] - b[1])
-
-def a_star(maze, start, goal):
-
-    rows = len(maze)
-    cols = len(maze[0])
-
-    # Priority Queue
-    open_list = []
-    heapq.heappush(open_list, (0, start))
-
-    came_from = {}
-    g_cost = {start: 0}
-
-    # Possible moves
-    directions = [(0,1), (1,0), (0,-1), (-1,0)]
-
-    while open_list:
-
-        current = heapq.heappop(open_list)[1]
-
-        # Goal reached
-        if current == goal:
-
-            path = []
-
-            while current in came_from:
-                path.append(current)
-                current = came_from[current]
-
-            path.append(start)
-            path.reverse()
-
-            return path
-
-        # Explore neighbors
-        for move in directions:
-
-            next_node = (
-                current[0] + move[0],
-                current[1] + move[1]
-            )
-
-            r, c = next_node
-
-            # Check valid path
-            if 0 <= r < rows and 0 <= c < cols:
-
-                if maze[r][c] == 1:
-                    continue
-
-                new_cost = g_cost[current] + 1
-
-                if next_node not in g_cost or new_cost < g_cost[next_node]:
-
-                    g_cost[next_node] = new_cost
-
-                    f_cost = new_cost + heuristic(next_node, goal)
-
-                    heapq.heappush(open_list, (f_cost, next_node))
-
-                    came_from[next_node] = current
-
-    return None
-
-
-# Run Algorithm
-path = a_star(maze, start, goal)
-
-# Output
-if path:
-    print("Shortest Path Found:")
-    print(path)
+import cv2
+import numpy as np
+import os
+path = "input.png"
+if os.path.exists(path):
+    image = cv2.imread(path)
 else:
-    print("No Path Found")
-_____________________________________________________________________________________________________________________________________________
+    image = np.full((400, 600, 3), 255, dtype=np.uint8)
+    cv2.circle(image, (150, 150), 55, (0, 0, 0), -1)
+    cv2.rectangle(image, (280, 80), (420, 220), (0, 0, 0), -1)
+    cv2.ellipse(image, (200, 310), (80, 35), 0, 0, 360, (0, 0, 0), -1)
+    cv2.putText(image, "Sample Image", (350, 330),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2)
+if image is None:
+    raise FileNotFoundError("Could not read input.jpg. Check the image file.")
+# 1. Loading
+print("Image loaded successfully. Dimensions:", image.shape)
+# 2. Resizing
+resized = cv2.resize(image, (400, 300))
+# 3. Cropping (central region)
+h, w = image.shape[:2]
+cropped = image[h//4:3*h//4, w//4:3*w//4]
+# 4. Grayscale and thresholding
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+_, thresh = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
+# 5. Contour analysis
+contours, _ = cv2.findContours(255 - thresh, cv2.RETR_EXTERNAL,
+                               cv2.CHAIN_APPROX_SIMPLE)
+contour_image = image.copy()
+cv2.drawContours(contour_image, contours, -1, (0, 0, 255), 2)
+print("Number of contours detected:", len(contours))
+# 6. Blob detection using SimpleBlobDetector
+params = cv2.SimpleBlobDetector_Params()
+params.filterByArea = True
+params.minArea = 50
+params.maxArea = 50000
+params.filterByCircularity = False
+params.filterByConvexity = False
+params.filterByInertia = False
+detector = cv2.SimpleBlobDetector_create(params)
+keypoints = detector.detect(gray)
+blob_image = cv2.drawKeypoints(image, keypoints, None, (0, 0, 255),
+                               cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+print("Number of blobs detected:", len(keypoints))
+cv2.imshow("Original Image", image)
+cv2.imshow("Resized Image", resized)
+cv2.imshow("Cropped Image", cropped)
+cv2.imshow("Threshold Image", thresh)
+cv2.imshow("Contour Analysis", contour_image)
+cv2.imshow("Blob Detection", blob_image)
+print("Press any key in an image window to close all windows.")
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+____________________________________________________________________________________________________
 
-Practical = 3
- Implement Greedy search algorithm for any of the following application: 
- 1) Prim's algo
-import heapq
+Practical 3: Practical No: 3    Image Annotation – Drawing lines, text circle, rectangle, ellipse on images
 
-class Graph:
-    def __init__(self, vertices):
-        self.V = vertices
-        self.graph = [[] for _ in range(vertices)]
+import cv2
+import numpy as np
+import os
+path = "input.jpg"
+if os.path.exists(path):
+    image = cv2.imread(path)
+else:
+    image = np.full((500, 700, 3), 255, dtype=np.uint8)
+    cv2.putText(image, "Sample Image", (180, 250),
+                cv2.FONT_HERSHEY_SIMPLEX, 1.3, (80, 80, 80), 3)
+if image is None:
+    raise FileNotFoundError("Could not read input.jpg. Check the image file.")
+annotated = image.copy()
+# Draw a line
+cv2.line(annotated, (20, 30), (300, 30), (255, 0, 0), 3)
+# Add text
+cv2.putText(annotated, "OpenCV Annotation", (20, 75),
+            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+# Draw a circle
+cv2.circle(annotated, (100, 160), 45, (0, 255, 0), 3)
+# Draw a rectangle
+cv2.rectangle(annotated, (180, 115), (330, 205), (255, 0, 255), 3)
+# Draw an ellipse
+cv2.ellipse(annotated, (450, 160), (80, 40), 0, 0, 360, (0, 165, 255), 3)
+cv2.imwrite("annotated_output.jpg", annotated)
+print("Annotations added successfully.")
+print("Saved output image as annotated_output.jpg")
+cv2.imshow("Practical 3 - Image Annotation", annotated)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+____________________________________________________________________________________________________
 
-    def add_edge(self, u, v, w):
-        self.graph[u].append((v, w))
-        self.graph[v].append((v, w))
+Deep Learning
 
-    def prim(self):
-        visited = [False] * self.V
-        min_heap = [(0, 0)]
-        total_cost = 0
-
-        while min_heap:
-            weight, node = heapq.heappop(min_heap)
-
-            if visited[node]:
-                continue
-
-            visited[node] = True
-            total_cost += weight
-
-            for neighbor, edge_weight in self.graph[node]:
-                if not visited[neighbor]:
-                    heapq.heappush(min_heap, (edge_weight, neighbor))
-
-        print("Total Cost:", total_cost)
-
-
-g = Graph(5)
-
-g.add_edge(0, 1, 2)
-g.add_edge(0, 3, 6)
-g.add_edge(1, 2, 3)
-g.add_edge(1, 3, 8)
-g.add_edge(1, 4, 5)
-g.add_edge(2, 4, 7)
-g.add_edge(3, 4, 9)
-
-g.prim()
-_____________________________________________________________________________________________________________________________________________
-
-Practocal = 4
-Implement a solution for a Constraint Satisfaction Problem using Branch and Bound and Backtracking for n-queens problem or a graph coloring problem. 
-# N-Queen Problem (Easy Version)
-
-N = 5
-board = [[0 for i in range(N)] for j in range(N)]
-# Function to check if queen can be placed
-def is_safe(row, col):
-    # Check upper column
-    for i in range(row):
-        if board[i][col] == 1:
-            return False
-    # Check left diagonal
-    i = row - 1
-    j = col - 1
-    while i >= 0 and j >= 0:
-        if board[i][j] == 1:
-            return False
-        i -= 1
-        j -= 1
-    # Check right diagonal
-    i = row - 1
-    j = col + 1
-    while i >= 0 and j < N:
-        if board[i][j] == 1:
-            return False
-        i -= 1
-        j += 1
-    return True
-# Function to solve N-Queen
-def solve(row):
-    # If all queens are placed
-    if row == N:
-        return True
-    # Try every column
-    for col in range(N):
-        if is_safe(row, col):
-            # Place queen
-            board[row][col] = 1
-            # Recursive call
-            if solve(row + 1):
-                return True
-            # Backtracking
-            board[row][col] = 0
-    return False
-# Main
-solve(0)
-# Print board
-for row in board:
-    for cell in row:
-        if cell == 1:
-            print("Q", end=" ")
-        else:
-            print(".", end=" ")
-    print()
-___________________________________________________________________________________________________________________________________________________________________
-Practical = 5
-Develop an elementary catboat for any suitable customer interaction application.
-
-import random
-
-class CustomerChatbot:
-    def __init__(self, name):
-        self.name = name
-
-    def respond(self, message):
-        message = message.lower()
-
-        # Greeting responses
-        greetings = [
-            "Hello! How can I assist you today?",
-            "Hi there! What can I help you with?",
-            "Welcome! How may I help you?"
-        ]
-
-        # Product information
-        product_info = "We offer laptops, smartphones, and accessories. Which product would you like information about?"
-
-        # Pricing information
-        pricing_info = "Our prices start from ₹10,000. Please specify the product for exact pricing."
-
-        # Order tracking
-        order_info = "Please provide your order ID to track your order."
-
-        # Complaint response
-        complaint_response = "I'm sorry for the inconvenience. Please describe your issue in detail so I can assist you."
-
-        # Goodbye responses
-        goodbyes = [
-            "Thank you for visiting! Have a great day!",
-            "Goodbye! Feel free to contact us again.",
-            "Take care! We are always here to help."
-        ]
-
-        # Intent detection using keywords
-        if any(word in message for word in ["hello", "hi", "hey"]):
-            return random.choice(greetings)
-
-        elif any(word in message for word in ["product", "item", "service"]):
-            return product_info
-
-        elif any(word in message for word in ["price", "cost", "rate"]):
-            return pricing_info
-
-        elif any(word in message for word in ["order", "track", "delivery"]):
-            return order_info
-
-        elif any(word in message for word in ["complaint", "problem", "issue"]):
-            return complaint_response
-
-        elif any(word in message for word in ["bye", "goodbye", "thank you"]):
-            return random.choice(goodbyes)
-
-        else:
-            return "I'm sorry, I didn't understand your request. Could you please rephrase?"
+in requirement.txt file
+tensorflow
+tensorflow-datasets
+numpy
+scikit-learn
+matplotlib
 
 
-# Create chatbot instance
-chatbot = CustomerChatbot("Customer Support Bot")
+Practical = 4  Linear regression using a Deep Neural Network. 
 
-print("---- Welcome to Customer Support ----")
+import numpy as np
+import matplotlib.pyplot as plt
+import tensorflow as tf
+from sklearn.datasets import fetch_california_housing
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+def load_data():
+    try:
+        # Available in some TensorFlow/Keras versions.
+        (x_train, y_train), (x_test, y_test) = tf.keras.datasets.boston_housing.load_data()
+        print("Dataset: Boston Housing")
+        return x_train, x_test, y_train, y_test
+    except Exception as exc:
+        print("Boston Housing unavailable; using California Housing instead.")
+        print("Reason:", exc)
+        data = fetch_california_housing()
+        return train_test_split(data.data, data.target, test_size=0.2, random_state=42)
+x_train, x_test, y_train, y_test = load_data()
+scaler = StandardScaler()
+x_train = scaler.fit_transform(x_train)
+x_test = scaler.transform(x_test)
+model = tf.keras.Sequential([
+    tf.keras.layers.Input(shape=(x_train.shape[1],)),
+    tf.keras.layers.Dense(64, activation="relu"),
+    tf.keras.layers.Dense(32, activation="relu"),
+    tf.keras.layers.Dense(1)
+])
+model.compile(optimizer="adam", loss="mse", metrics=["mae"])
+history = model.fit(x_train, y_train, epochs=50, batch_size=16,
+                    validation_split=0.2, verbose=1)
+loss, mae = model.evaluate(x_test, y_test, verbose=0)
+print(f"Test MSE: {loss:.4f}")
+print(f"Test MAE: {mae:.4f}")
+pred = model.predict(x_test, verbose=0).flatten()
+plt.figure(figsize=(7, 5))
+plt.scatter(y_test, pred, alpha=0.6)
+low = min(float(np.min(y_test)), float(np.min(pred)))
+high = max(float(np.max(y_test)), float(np.max(pred)))
+plt.plot([low, high], [low, high], "r--")
+plt.xlabel("Actual house value")
+plt.ylabel("Predicted house value")
+plt.title("DNN Regression: Actual vs Predicted")
+plt.tight_layout()
+plt.show()
 
-while True:
-    user_input = input("You: ")
-    response = chatbot.respond(user_input)
-    print(chatbot.name + ": " + response)
+____________________________________________________________________________________________________
 
-    if any(word in user_input.lower() for word in ["bye", "goodbye"]):
-        break
-___________________________________________________________________________________________________________________________________________________________________
-Practical = 6
-Implement any one of the following Expert System
-Library management
-books = []
+Practical = 5 Multiclass classification using a Deep Neural Network.
 
-while True:
-    print("\n--- Library Management System ---")
-    print("1. Add Book")
-    print("2. View Books")
-    print("3. Search Book")
-    print("4. Delete Book")
-    print("5. Exit")
+"""
+Practical 5: Multiclass classification using a Deep Neural Network.
+Dataset: EMNIST Letters (handwritten A-Z images).
+Output: test accuracy and a sample image with predicted letter.
+"""
+import numpy as np
+import matplotlib.pyplot as plt
+import tensorflow as tf
+import tensorflow_datasets as tfds
 
-    choice = input("Enter your choice: ")
+IMG_SIZE = 28
+BATCH_SIZE = 128
 
-    # Add Book
-    if choice == "1":
-        book_id = input("Enter Book ID: ")
-        title = input("Enter Book Title: ")
-        author = input("Enter Author Name: ")
-        year = input("Enter Year: ")
+(ds_train, ds_test), info = tfds.load(
+    "emnist/letters",
+    split=["train", "test"],
+    as_supervised=True,
+    with_info=True
+)
 
-        book = {
-            "id": book_id,
-            "title": title,
-            "author": author,
-            "year": year
-        }
+def prepare(image, label):
+    image = tf.cast(image, tf.float32) / 255.0
+    image = tf.reshape(image, (IMG_SIZE * IMG_SIZE,))
+    # EMNIST Letters labels are 1..26; convert to 0..25.
+    label = tf.cast(label, tf.int32) - 1
+    return image, label
 
-        books.append(book)
-        print("Book added successfully!")
+ds_train = ds_train.map(prepare, num_parallel_calls=tf.data.AUTOTUNE)
+ds_test = ds_test.map(prepare, num_parallel_calls=tf.data.AUTOTUNE)
+ds_train = ds_train.shuffle(10000).batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
+ds_test = ds_test.batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
 
-    # View Books
-    elif choice == "2":
+model = tf.keras.Sequential([
+    tf.keras.layers.Input(shape=(784,)),
+    tf.keras.layers.Dense(256, activation="relu"),
+    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.Dense(128, activation="relu"),
+    tf.keras.layers.Dense(26, activation="softmax")
+])
+model.compile(optimizer="adam",
+              loss="sparse_categorical_crossentropy",
+              metrics=["accuracy"])
+model.fit(ds_train, epochs=5, validation_data=ds_test)
+loss, accuracy = model.evaluate(ds_test, verbose=0)
+print(f"Test accuracy: {accuracy * 100:.2f}%")
 
-        if books == []:
-            print("No books available.")
+for images, labels in ds_test.take(1):
+    probabilities = model.predict(images, verbose=0)
+    index = 0
+    predicted = int(np.argmax(probabilities[index]))
+    actual = int(labels[index].numpy())
+    plt.imshow(images[index].numpy().reshape(28, 28), cmap="gray")
+    plt.title(f"Actual: {chr(actual + 65)} | Predicted: {chr(predicted + 65)}")
+    plt.axis("off")
+    plt.show()
+____________________________________________________________________________________________________
 
-        else:
-            print("\nBook List:")
+Practical =6 Image classification using CNN on Fashion-MNIST
 
-            for book in books:
-                print("ID:", book["id"])
-                print("Title:", book["title"])
-                print("Author:", book["author"])
-                print("Year:", book["year"])
-                print("----------------")
+import numpy as np
+import matplotlib.pyplot as plt
+import tensorflow as tf
 
-    # Search Book
-    elif choice == "3":
+class_names = [
+    "T-shirt/top", "Trouser", "Pullover", "Dress", "Coat",
+    "Sandal", "Shirt", "Sneaker", "Bag", "Ankle boot"
+]
+(x_train, y_train), (x_test, y_test) = tf.keras.datasets.fashion_mnist.load_data()
+x_train = x_train.astype("float32") / 255.0
+x_test = x_test.astype("float32") / 255.0
+x_train = x_train[..., np.newaxis]
+x_test = x_test[..., np.newaxis]
 
-        search_title = input("Enter book title to search: ")
-        found = False
+model = tf.keras.Sequential([
+    tf.keras.layers.Input(shape=(28, 28, 1)),
+    tf.keras.layers.Conv2D(32, (3, 3), activation="relu"),
+    tf.keras.layers.MaxPooling2D((2, 2)),
+    tf.keras.layers.Conv2D(64, (3, 3), activation="relu"),
+    tf.keras.layers.MaxPooling2D((2, 2)),
+    tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(128, activation="relu"),
+    tf.keras.layers.Dropout(0.3),
+    tf.keras.layers.Dense(10, activation="softmax")
+])
+model.compile(optimizer="adam",
+              loss="sparse_categorical_crossentropy",
+              metrics=["accuracy"])
+model.fit(x_train, y_train, epochs=5, batch_size=64,
+          validation_split=0.1, verbose=1)
+loss, accuracy = model.evaluate(x_test, y_test, verbose=0)
+print(f"Test accuracy: {accuracy * 100:.2f}%")
+print(f"Test loss: {loss:.4f}")
 
-        for book in books:
-
-            if book["title"].lower() == search_title.lower():
-                print("\nBook Found")
-                print("ID:", book["id"])
-                print("Title:", book["title"])
-                print("Author:", book["author"])
-                print("Year:", book["year"])
-
-                found = True
-
-        if found == False:
-            print("Book not found.")
-
-    # Delete Book
-    elif choice == "4":
-
-        delete_id = input("Enter Book ID to delete: ")
-        found = False
-
-        for book in books:
-
-            if book["id"] == delete_id:
-                books.remove(book)
-                print("Book deleted successfully!")
-                found = True
-                break
-
-        if found == False:
-            print("Book not found.")
-
-    # Exit
-    elif choice == "5":
-        print("Thank you!")
-        break
-
-    # Invalid Choice
-    else:
-        print("Invalid choice. Please try again.")
+predictions = model.predict(x_test[:12], verbose=0)
+plt.figure(figsize=(10, 5))
+for i in range(10):
+    plt.subplot(2, 5, i + 1)
+    plt.imshow(x_test[i].squeeze(), cmap="gray")
+    predicted = int(np.argmax(predictions[i]))
+    plt.title(f"P: {class_names[predicted]}\\nA: {class_names[y_test[i]]}", fontsize=8)
+    plt.axis("off")
+plt.tight_layout()
+plt.show()
+____________________________________________________________________________________________________
 
